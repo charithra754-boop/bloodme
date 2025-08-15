@@ -36,7 +36,6 @@ import {
   LocalHospital, 
   Notifications, 
   TrendingUp,
-  Emergency,
   People,
   Schedule,
   CheckCircle,
@@ -52,6 +51,10 @@ import { toast } from 'react-toastify'
 import { AppDispatch, RootState } from '@/store'
 import { fetchHospitalAlerts, createAlert } from '@/store/slices/alertsSlice'
 import FloatingActionButton from '@/components/FloatingActionButton'
+import SimpleMap from '@/components/SimpleMap'
+import MapStats from '@/components/MapStats'
+import MapNotifications from '@/components/MapNotifications'
+// import LiveNotifications from '@/components/LiveNotifications'
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 const priorities = [
@@ -176,7 +179,7 @@ export default function HospitalDashboard() {
             <Box textAlign="center">
               <Button
                 variant="contained"
-                startIcon={<Emergency />}
+                startIcon={<Warning />}
                 onClick={() => setCreateDialogOpen(true)}
                 size="large"
                 sx={{ 
@@ -218,7 +221,7 @@ export default function HospitalDashboard() {
                     </Typography>
                   </Box>
                   <Badge badgeContent={activeAlerts.length} color="error">
-                    <Emergency sx={{ fontSize: 40, opacity: 0.8 }} />
+                    <Warning sx={{ fontSize: 40, opacity: 0.8 }} />
                   </Badge>
                 </Box>
                 <LinearProgress 
@@ -303,17 +306,99 @@ export default function HospitalDashboard() {
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                   <Box>
                     <Typography variant="h3" fontWeight="bold">
-                      {Math.round((totalResponses / Math.max(hospitalAlerts.length, 1)) * 100)}%
+                      12
                     </Typography>
                     <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                      📈 Response Rate
+                      👨‍⚕️ Doctors On Shift
                     </Typography>
                   </Box>
                   <People sx={{ fontSize: 40, opacity: 0.8 }} />
                 </Box>
+                <Box display="flex" alignItems="center" mt={2}>
+                  <CheckCircle sx={{ mr: 1, fontSize: 16 }} />
+                  <Typography variant="caption">
+                    8 Available, 4 In Surgery
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grow>
+        </Grid>
+        
+        {/* Additional Hospital-Specific Cards */}
+        <Grid item xs={12} sm={6} md={3}>
+          <Grow in timeout={1400}>
+            <Card sx={{ 
+              background: 'linear-gradient(135deg, #607d8b 0%, #78909c 100%)',
+              color: 'white'
+            }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" justifyContent="space-between">
+                  <Box>
+                    <Typography variant="h3" fontWeight="bold">
+                      3
+                    </Typography>
+                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                      🏕️ Nearby Camps
+                    </Typography>
+                  </Box>
+                  <LocationOn sx={{ fontSize: 40, opacity: 0.8 }} />
+                </Box>
+                <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                  Next: City Park - Tomorrow 9AM
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grow>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Grow in timeout={1600}>
+            <Card sx={{ 
+              background: 'linear-gradient(135deg, #795548 0%, #8d6e63 100%)',
+              color: 'white'
+            }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" justifyContent="space-between">
+                  <Box>
+                    <Typography variant="h3" fontWeight="bold">
+                      7
+                    </Typography>
+                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                      🚑 Emergency Cases
+                    </Typography>
+                  </Box>
+                  <Warning sx={{ fontSize: 40, opacity: 0.8 }} />
+                </Box>
+                <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                  2 Critical, 5 Stable
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grow>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Grow in timeout={1800}>
+            <Card sx={{ 
+              background: 'linear-gradient(135deg, #ff5722 0%, #ff7043 100%)',
+              color: 'white'
+            }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" justifyContent="space-between">
+                  <Box>
+                    <Typography variant="h3" fontWeight="bold">
+                      89%
+                    </Typography>
+                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                      🏥 Bed Occupancy
+                    </Typography>
+                  </Box>
+                  <LocalHospital sx={{ fontSize: 40, opacity: 0.8 }} />
+                </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={Math.round((totalResponses / Math.max(hospitalAlerts.length, 1)) * 100)} 
+                  value={89} 
                   sx={{ 
                     mt: 2, 
                     bgcolor: 'rgba(255,255,255,0.3)',
@@ -324,7 +409,56 @@ export default function HospitalDashboard() {
             </Card>
           </Grow>
         </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Grow in timeout={2000}>
+            <Card sx={{ 
+              background: 'linear-gradient(135deg, #009688 0%, #26a69a 100%)',
+              color: 'white'
+            }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" justifyContent="space-between">
+                  <Box>
+                    <Typography variant="h3" fontWeight="bold">
+                      156
+                    </Typography>
+                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                      📋 Today's Surgeries
+                    </Typography>
+                  </Box>
+                  <Schedule sx={{ fontSize: 40, opacity: 0.8 }} />
+                </Box>
+                <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                  23 Completed, 133 Scheduled
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grow>
+        </Grid>
       </Grid>
+
+      {/* Map Statistics */}
+      <MapStats userRole="hospital" />
+
+      {/* Live Donor Map */}
+      <Card sx={{ borderRadius: 3, overflow: 'hidden', mb: 4 }}>
+        <Box sx={{ 
+          background: 'linear-gradient(90deg, #f5f5f5 0%, #e0e0e0 100%)',
+          p: 3,
+          borderBottom: '1px solid #e0e0e0'
+        }}>
+          <Typography variant="h5" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            🗺️ Live Donor Map
+            <Chip label="Real-time" color="success" size="small" />
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            View available donors and blood camps in your area
+          </Typography>
+        </Box>
+        <CardContent sx={{ p: 0 }}>
+          <SimpleMap userRole="hospital" height={500} />
+        </CardContent>
+      </Card>
 
       {/* Enhanced Recent Alerts */}
       <Card sx={{ borderRadius: 3, overflow: 'hidden' }}>
@@ -360,7 +494,7 @@ export default function HospitalDashboard() {
         <CardContent sx={{ p: 0 }}>
           {hospitalAlerts.length === 0 ? (
             <Box textAlign="center" py={8}>
-              <Emergency sx={{ fontSize: 80, color: 'grey.300', mb: 2 }} />
+              <Warning sx={{ fontSize: 80, color: 'grey.300', mb: 2 }} />
               <Typography variant="h6" color="text.secondary" gutterBottom>
                 No alerts created yet
               </Typography>
@@ -613,6 +747,12 @@ export default function HospitalDashboard() {
         onCreateAlert={() => setCreateDialogOpen(true)}
         onRefresh={() => dispatch(fetchHospitalAlerts())}
       />
+
+      {/* 🚨 HACKATHON DEMO: Live Notifications for Hospitals - Temporarily disabled */}
+      {/* <LiveNotifications userId={user?.id || ''} userRole="hospital" /> */}
+      
+      {/* Map Notifications */}
+      <MapNotifications userRole="hospital" />
     </Container>
   )
 }

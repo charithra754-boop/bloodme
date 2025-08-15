@@ -37,23 +37,23 @@ const initialState: AlertsState = {
   error: null,
 }
 
-export const fetchActiveAlerts = createAsyncThunk(
+export const fetchActiveAlerts = createAsyncThunk<any[]>(
   'alerts/fetchActive',
   async () => {
     const response = await alertsAPI.getActiveAlerts()
-    return response
+    return Array.isArray(response) ? response : []
   }
 )
 
-export const fetchHospitalAlerts = createAsyncThunk(
+export const fetchHospitalAlerts = createAsyncThunk<any[], string | undefined>(
   'alerts/fetchHospital',
   async (status?: string) => {
     const response = await alertsAPI.getHospitalAlerts(status)
-    return response
+    return Array.isArray(response) ? response : []
   }
 )
 
-export const createAlert = createAsyncThunk(
+export const createAlert = createAsyncThunk<any, any>(
   'alerts/create',
   async (alertData: any) => {
     const response = await alertsAPI.createAlert(alertData)
@@ -61,7 +61,7 @@ export const createAlert = createAsyncThunk(
   }
 )
 
-export const respondToAlert = createAsyncThunk(
+export const respondToAlert = createAsyncThunk<any, { alertId: string; response: any }>(
   'alerts/respond',
   async ({ alertId, response }: { alertId: string; response: any }) => {
     const result = await alertsAPI.respondToAlert(alertId, response)
@@ -111,9 +111,12 @@ const alertsSlice = createSlice({
       })
       // Respond to alert
       .addCase(respondToAlert.fulfilled, (state, action) => {
-        const index = state.activeAlerts.findIndex(alert => alert._id === action.payload._id)
-        if (index !== -1) {
-          state.activeAlerts[index] = action.payload
+        const payload = action.payload as any
+        if (payload && payload._id) {
+          const index = state.activeAlerts.findIndex(alert => alert._id === payload._id)
+          if (index !== -1) {
+            state.activeAlerts[index] = payload
+          }
         }
       })
   },

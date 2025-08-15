@@ -29,6 +29,13 @@ api.interceptors.response.use(
       window.location.href = '/auth/login'
     }
     
+    // 🚨 HACKATHON DEMO: Check if backend is down
+    if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+      console.warn('🚨 Backend appears to be down, using mock data for demo')
+      // Don't reject - let the API functions handle fallback
+      return Promise.reject({ useMockData: true, originalError: error })
+    }
+    
     // Better error handling
     const errorMessage = error.response?.data?.message || 
                         error.response?.data?.error || 
@@ -39,29 +46,85 @@ api.interceptors.response.use(
   }
 )
 
+import { mockAuthAPI, mockAlertsAPI } from './mockApi'
+
 export const authAPI = {
-  login: (credentials: { email: string; password: string }): Promise<{ user: any; token: string }> =>
-    api.post('/auth/login', credentials),
+  login: async (credentials: { email: string; password: string }): Promise<{ user: any; token: string }> => {
+    try {
+      return await api.post('/auth/login', credentials)
+    } catch (error: any) {
+      if (error.useMockData) {
+        console.warn('🚨 Using mock login for demo')
+        return await mockAuthAPI.login(credentials)
+      }
+      throw error
+    }
+  },
   
-  register: (userData: any): Promise<{ user: any; token: string }> =>
-    api.post('/auth/register', userData),
+  register: async (userData: any): Promise<{ user: any; token: string }> => {
+    try {
+      return await api.post('/auth/register', userData)
+    } catch (error: any) {
+      if (error.useMockData) {
+        console.warn('🚨 Using mock registration for demo')
+        return await mockAuthAPI.register(userData)
+      }
+      throw error
+    }
+  },
   
   getProfile: () =>
     api.post('/auth/profile'),
 }
 
 export const alertsAPI = {
-  getActiveAlerts: () =>
-    api.get('/alerts/active'),
+  getActiveAlerts: async () => {
+    try {
+      return await api.get('/alerts/active')
+    } catch (error: any) {
+      if (error.useMockData) {
+        console.warn('🚨 Using mock alerts for demo')
+        return await mockAlertsAPI.getActiveAlerts()
+      }
+      throw error
+    }
+  },
   
-  getHospitalAlerts: (status?: string) =>
-    api.get(`/alerts/hospital${status ? `?status=${status}` : ''}`),
+  getHospitalAlerts: async (status?: string) => {
+    try {
+      return await api.get(`/alerts/hospital${status ? `?status=${status}` : ''}`)
+    } catch (error: any) {
+      if (error.useMockData) {
+        console.warn('🚨 Using mock hospital alerts for demo')
+        return []
+      }
+      throw error
+    }
+  },
   
-  createAlert: (alertData: any) =>
-    api.post('/alerts', alertData),
+  createAlert: async (alertData: any) => {
+    try {
+      return await api.post('/alerts', alertData)
+    } catch (error: any) {
+      if (error.useMockData) {
+        console.warn('🚨 Using mock alert creation for demo')
+        return await mockAlertsAPI.createAlert(alertData)
+      }
+      throw error
+    }
+  },
   
-  respondToAlert: (alertId: string, response: any) =>
-    api.post(`/alerts/${alertId}/respond`, response),
+  respondToAlert: async (alertId: string, response: any) => {
+    try {
+      return await api.post(`/alerts/${alertId}/respond`, response)
+    } catch (error: any) {
+      if (error.useMockData) {
+        console.warn('🚨 Using mock alert response for demo')
+        return await mockAlertsAPI.respondToAlert(alertId, response)
+      }
+      throw error
+    }
+  },
   
   updateAlertStatus: (alertId: string, status: string) =>
     api.patch(`/alerts/${alertId}/status`, { status }),

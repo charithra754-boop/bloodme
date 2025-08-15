@@ -138,3 +138,72 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #b71c1c;
 }
+
+/* Leaflet map styles */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  border-radius: 12px;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.leaflet-popup-tip {
+  background: white;
+}
+
+/* Custom marker animations */
+@keyframes markerBounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+.marker-bounce {
+  animation: markerBounce 2s infinite;
+}
+
+/* Map loading animation */
+@keyframes mapLoad {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.map-container {
+  animation: mapLoad 0.5s ease-out;
+}
+
+/* Emergency alert pulse on map */
+@keyframes emergencyPulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.emergency-marker {
+  animation: emergencyPulse 1.5s infinite;
+}

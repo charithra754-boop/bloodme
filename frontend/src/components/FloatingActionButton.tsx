@@ -11,7 +11,7 @@ import {
 } from '@mui/material'
 import {
   Add,
-  Emergency,
+  Warning,
   Refresh,
   Notifications,
   Analytics,
@@ -36,7 +36,7 @@ export default function FloatingActionButton({
 
   const hospitalActions = [
     {
-      icon: <Emergency />,
+      icon: <Warning />,
       name: 'Emergency Alert',
       onClick: onCreateAlert,
       color: '#f44336'

@@ -69,9 +69,16 @@ describe('AuthService', () => {
         name: 'John Doe',
         email: 'john@example.com',
         password: 'password123',
-        role: 'donor',
-        bloodGroup: 'O+',
-        // ... other fields
+        phone: '+1234567890',
+        role: 'donor' as any,
+        address: '123 Test St',
+        location: {
+          type: 'Point',
+          coordinates: [-74.0060, 40.7128] as [number, number]
+        },
+        bloodGroup: 'O+' as any,
+        dateOfBirth: '1990-01-01',
+        weight: 70
       };
 
       mockUserModel.findOne.mockResolvedValue(null);

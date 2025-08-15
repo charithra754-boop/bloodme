@@ -11,15 +11,6 @@ import {
   Button,
   Box,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Select,
   Alert,
   LinearProgress,
   Avatar,
@@ -28,19 +19,19 @@ import {
   Grow,
   IconButton,
   Tooltip,
-  Badge,
-  Divider
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  CircularProgress
 } from '@mui/material'
-import { 
-  Favorite, 
-  Notifications, 
+import {
+  Favorite,
   EmojiEvents,
   LocationOn,
-  Phone,
   CheckCircle,
-  Cancel,
   BloodtypeOutlined,
-  Emergency,
   Schedule,
   TrendingUp,
   Star,
@@ -48,68 +39,74 @@ import {
   Refresh,
   VolunteerActivism,
   Timeline,
-  CardGiftcard
+  CardGiftcard,
+  AccessTime,
+  DirectionsRun,
+  Phone,
+  Navigation,
+  Cancel
 } from '@mui/icons-material'
-import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import { AppDispatch, RootState } from '@/store'
 import { fetchActiveAlerts, respondToAlert } from '@/store/slices/alertsSlice'
-import FloatingActionButton from '@/components/FloatingActionButton'
-
-interface RespondForm {
-  status: string
-  estimatedArrival: string
-  notes: string
-}
+import DonorHealthCard from '@/components/DonorHealthCard'
+import SimpleMap from '@/components/SimpleMap'
+import MapStats from '@/components/MapStats'
+import MapNotifications from '@/components/MapNotifications'
 
 export default function DonorDashboard() {
   const dispatch = useDispatch<AppDispatch>()
   const { activeAlerts, loading } = useSelector((state: RootState) => state.alerts)
   const { user } = useSelector((state: RootState) => state.auth)
-  
-  const [respondDialogOpen, setRespondDialogOpen] = useState(false)
-  const [selectedAlert, setSelectedAlert] = useState<any>(null)
-  
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors }
-  } = useForm<RespondForm>()
+
+  const [responding, setResponding] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Mock donor stats for demo
+  const donorStats = {
+    totalDonations: 12,
+    lastDonationDate: new Date('2024-01-15'),
+    nextEligibleDate: new Date('2024-04-15'),
+    bloodGroup: (user as any)?.bloodGroup || 'O+',
+    points: 1250,
+    rewardPoints: 23,
+    level: 'Gold Donor',
+    badges: ['Life Saver', 'Regular Hero', 'Emergency Responder'],
+    totalDistance: 45.2,
+    livesImpacted: 36,
+    healthScore: 95
+  }
 
   useEffect(() => {
     dispatch(fetchActiveAlerts())
-    // Set up polling for new alerts
     const interval = setInterval(() => {
       dispatch(fetchActiveAlerts())
-    }, 30000) // Poll every 30 seconds
-    
+    }, 30000)
     return () => clearInterval(interval)
   }, [dispatch])
 
-  const handleRespond = (alert: any) => {
-    setSelectedAlert(alert)
-    setRespondDialogOpen(true)
-  }
-
-  const onSubmitResponse = async (data: RespondForm) => {
-    if (!selectedAlert) return
-    
+  const handleQuickResponse = async (alertId: string, response: 'accepted' | 'declined') => {
+    setResponding(true)
     try {
       await dispatch(respondToAlert({
-        alertId: selectedAlert._id,
+        alertId,
         response: {
-          ...data,
-          estimatedArrival: data.estimatedArrival ? new Date(data.estimatedArrival).toISOString() : undefined
+          status: response,
+          estimatedArrival: response === 'accepted' ? '30 minutes' : null,
+          notes: response === 'accepted' ? 'On my way!' : 'Unable to help at this time'
         }
       })).unwrap()
       
-      toast.success('Response submitted successfully!')
-      setRespondDialogOpen(false)
-      reset()
+      toast.success(response === 'accepted' ? 'Response sent! Thank you for helping!' : 'Response recorded')
       dispatch(fetchActiveAlerts())
     } catch (error: any) {
-      toast.error(error.message || 'Failed to submit response')
+      toast.error(error.message || 'Failed to respond to alert')
+    } finally {
+      setResponding(false)
     }
   }
 
@@ -127,32 +124,31 @@ export default function DonorDashboard() {
     const now = new Date()
     const required = new Date(requiredBy)
     const hoursLeft = (required.getTime() - now.getTime()) / (1000 * 60 * 60)
-    
+
     if (hoursLeft < 2) return { text: 'URGENT - Less than 2 hours', color: 'error' }
     if (hoursLeft < 6) return { text: `${Math.floor(hoursLeft)} hours left`, color: 'warning' }
     return { text: `${Math.floor(hoursLeft)} hours left`, color: 'success' }
   }
 
-  // Mock donor stats - in real app, fetch from API
-  const donorStats = {
-    totalDonations: 5,
-    rewardPoints: 250,
-    tier: 'Silver',
-    nextTierPoints: 500,
-    livesImpacted: 15
-  }
+  const daysUntilEligible = Math.ceil((donorStats.nextEligibleDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
 
-  const progressToNextTier = (donorStats.rewardPoints / donorStats.nextTierPoints) * 100
+  if (!mounted) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Container>
+    )
+  }
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Enhanced Header */}
+      {/* Donor Welcome Header */}
       <Fade in timeout={800}>
-        <Paper 
-          elevation={0} 
-          sx={{ 
-            p: 4, 
-            mb: 4, 
+        <Paper
+          elevation={0}
+          sx={{
+            p: 4,
+            mb: 4,
             background: 'linear-gradient(135deg, #e91e63 0%, #f06292 100%)',
             color: 'white',
             borderRadius: 3,
@@ -160,17 +156,6 @@ export default function DonorDashboard() {
             overflow: 'hidden'
           }}
         >
-          <Box 
-            sx={{
-              position: 'absolute',
-              top: -50,
-              right: -50,
-              width: 200,
-              height: 200,
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.1)',
-            }}
-          />
           <Box display="flex" justifyContent="space-between" alignItems="center">
             <Box display="flex" alignItems="center" gap={3}>
               <Avatar 
@@ -181,55 +166,51 @@ export default function DonorDashboard() {
                   fontSize: '2rem'
                 }}
               >
-                <VolunteerActivism fontSize="large" />
+                <Favorite fontSize="large" />
               </Avatar>
               <Box>
                 <Typography variant="h3" fontWeight="bold" gutterBottom>
-                  Life Saver Dashboard
+                  Welcome Back, Hero! 🩸
                 </Typography>
                 <Typography variant="h6" sx={{ opacity: 0.9 }}>
-                  Welcome back, {user?.name}! 🦸‍♀️
+                  {user?.name} • {donorStats.bloodGroup} Donor
                 </Typography>
                 <Box display="flex" alignItems="center" gap={2} mt={1}>
                   <Chip 
-                    icon={<CheckCircle />} 
-                    label="Eligible Donor" 
+                    icon={<EmojiEvents />} 
+                    label={donorStats.level} 
                     size="small" 
-                    sx={{ bgcolor: 'rgba(76,175,80,0.8)', color: 'white' }}
+                    sx={{ bgcolor: 'rgba(255,193,7,0.8)', color: 'white' }}
                   />
                   <Chip 
                     icon={<Star />} 
-                    label={`${donorStats.tier} Member`} 
+                    label={`${donorStats.points} Points`} 
                     size="small" 
-                    sx={{ bgcolor: 'rgba(255,193,7,0.8)', color: 'white' }}
+                    sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
                   />
                 </Box>
               </Box>
             </Box>
             <Box textAlign="center">
-              <Typography variant="h4" fontWeight="bold" gutterBottom>
+              <Typography variant="h2" fontWeight="bold" color="rgba(255,255,255,0.9)">
                 {donorStats.livesImpacted}
               </Typography>
-              <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                💝 Lives Impacted
-              </Typography>
-              <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-                You're a hero! 🌟
+              <Typography variant="body1">
+                Lives Impacted 💝
               </Typography>
             </Box>
           </Box>
         </Paper>
       </Fade>
 
-      {/* Enhanced Stats Cards */}
+      {/* Donor Stats Cards */}
       <Grid container spacing={3} mb={4}>
         <Grid item xs={12} sm={6} md={3}>
           <Grow in timeout={600}>
             <Card sx={{ 
-              background: 'linear-gradient(135deg, #e91e63 0%, #f06292 100%)',
+              background: 'linear-gradient(135deg, #f44336 0%, #e57373 100%)',
               color: 'white',
-              position: 'relative',
-              overflow: 'hidden'
+              height: '100%'
             }}>
               <CardContent>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -238,19 +219,23 @@ export default function DonorDashboard() {
                       {donorStats.totalDonations}
                     </Typography>
                     <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                      🩸 Blood Donations
+                      🩸 Total Donations
                     </Typography>
                   </Box>
-                  <Badge badgeContent={donorStats.totalDonations} color="error">
-                    <Favorite sx={{ fontSize: 40, opacity: 0.8 }} />
-                  </Badge>
+                  <BloodtypeOutlined sx={{ fontSize: 40, opacity: 0.8 }} />
                 </Box>
-                <Box display="flex" alignItems="center" mt={2}>
-                  <TrendingUp sx={{ mr: 1, fontSize: 16 }} />
-                  <Typography variant="caption">
-                    {donorStats.totalDonations > 0 ? 'Keep up the great work!' : 'Ready to start saving lives?'}
-                  </Typography>
-                </Box>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={(donorStats.totalDonations / 20) * 100} 
+                  sx={{ 
+                    mt: 2, 
+                    bgcolor: 'rgba(255,255,255,0.3)',
+                    '& .MuiLinearProgress-bar': { bgcolor: 'rgba(255,255,255,0.8)' }
+                  }}
+                />
+                <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                  Next milestone: 20 donations
+                </Typography>
               </CardContent>
             </Card>
           </Grow>
@@ -259,30 +244,28 @@ export default function DonorDashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <Grow in timeout={800}>
             <Card sx={{ 
-              background: 'linear-gradient(135deg, #ff9800 0%, #ffb74d 100%)',
-              color: 'white'
+              background: 'linear-gradient(135deg, #4caf50 0%, #81c784 100%)',
+              color: 'white',
+              height: '100%'
             }}>
               <CardContent>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                   <Box>
                     <Typography variant="h3" fontWeight="bold">
-                      {donorStats.rewardPoints}
+                      {donorStats.healthScore}%
                     </Typography>
                     <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                      ⭐ Reward Points
+                      💪 Health Score
                     </Typography>
                   </Box>
-                  <EmojiEvents sx={{ fontSize: 40, opacity: 0.8 }} />
+                  <Favorite sx={{ fontSize: 40, opacity: 0.8 }} />
                 </Box>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={(donorStats.rewardPoints / donorStats.nextTierPoints) * 100} 
-                  sx={{ 
-                    mt: 2, 
-                    bgcolor: 'rgba(255,255,255,0.3)',
-                    '& .MuiLinearProgress-bar': { bgcolor: 'rgba(255,255,255,0.8)' }
-                  }}
-                />
+                <Box display="flex" alignItems="center" mt={2}>
+                  <CheckCircle sx={{ mr: 1, fontSize: 16 }} />
+                  <Typography variant="caption">
+                    Excellent condition for donation
+                  </Typography>
+                </Box>
               </CardContent>
             </Card>
           </Grow>
@@ -291,27 +274,30 @@ export default function DonorDashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <Grow in timeout={1000}>
             <Card sx={{ 
-              background: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)',
-              color: 'white'
+              background: daysUntilEligible <= 0 
+                ? 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)'
+                : 'linear-gradient(135deg, #ff9800 0%, #ffb74d 100%)',
+              color: 'white',
+              height: '100%'
             }}>
               <CardContent>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                   <Box>
                     <Typography variant="h3" fontWeight="bold">
-                      {donorStats.livesImpacted}
+                      {daysUntilEligible <= 0 ? '✅' : daysUntilEligible}
                     </Typography>
                     <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                      💝 Lives Saved
+                      {daysUntilEligible <= 0 ? '🎉 Ready to Donate!' : '⏰ Days Until Eligible'}
                     </Typography>
                   </Box>
-                  <VolunteerActivism sx={{ fontSize: 40, opacity: 0.8 }} />
+                  <Schedule sx={{ fontSize: 40, opacity: 0.8 }} />
                 </Box>
-                <Box display="flex" alignItems="center" mt={2}>
-                  <Star sx={{ mr: 1, fontSize: 16 }} />
-                  <Typography variant="caption">
-                    You're making a difference!
-                  </Typography>
-                </Box>
+                <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                  {daysUntilEligible <= 0 
+                    ? 'You can donate blood now!' 
+                    : `Next eligible: ${new Date(donorStats.nextEligibleDate).toLocaleDateString()}`
+                  }
+                </Typography>
               </CardContent>
             </Card>
           </Grow>
@@ -321,31 +307,23 @@ export default function DonorDashboard() {
           <Grow in timeout={1200}>
             <Card sx={{ 
               background: 'linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%)',
-              color: 'white'
+              color: 'white',
+              height: '100%'
             }}>
               <CardContent>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
                   <Box>
-                    <Typography variant="h6" gutterBottom>
-                      🏆 {donorStats.tier} Tier
+                    <Typography variant="h3" fontWeight="bold">
+                      {donorStats.badges.length}
                     </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                      Next: Gold Level
+                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                      🏆 Badges Earned
                     </Typography>
                   </Box>
-                  <CardGiftcard sx={{ fontSize: 40, opacity: 0.8 }} />
+                  <EmojiEvents sx={{ fontSize: 40, opacity: 0.8 }} />
                 </Box>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={progressToNextTier} 
-                  sx={{ 
-                    mt: 2, 
-                    bgcolor: 'rgba(255,255,255,0.3)',
-                    '& .MuiLinearProgress-bar': { bgcolor: 'rgba(255,255,255,0.8)' }
-                  }}
-                />
                 <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
-                  {donorStats.nextTierPoints - donorStats.rewardPoints} points to go
+                  Latest: {donorStats.badges[donorStats.badges.length - 1]}
                 </Typography>
               </CardContent>
             </Card>
@@ -353,188 +331,293 @@ export default function DonorDashboard() {
         </Grid>
       </Grid>
 
-      {/* Active Alerts */}
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Active Blood Donation Alerts Near You
-          </Typography>
-          
-          {loading && <LinearProgress sx={{ mb: 2 }} />}
-          
-          {activeAlerts.length === 0 ? (
-            <Alert severity="info">
-              No active alerts in your area right now. We'll notify you when blood is needed!
-            </Alert>
+      {/* Available Blood Requests */}
+      <Card sx={{ borderRadius: 3, overflow: 'hidden', mb: 4 }}>
+        <Box sx={{ 
+          background: 'linear-gradient(90deg, #f5f5f5 0%, #e0e0e0 100%)',
+          p: 3,
+          borderBottom: '1px solid #e0e0e0'
+        }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Box display="flex" alignItems="center" gap={2}>
+              <LocalHospital color="error" sx={{ fontSize: 28 }} />
+              <Typography variant="h5" fontWeight="bold">
+                🚨 Blood Requests Near You
+              </Typography>
+            </Box>
+            <Box display="flex" gap={1}>
+              <Tooltip title="Refresh requests">
+                <IconButton onClick={() => dispatch(fetchActiveAlerts())}>
+                  <Refresh />
+                </IconButton>
+              </Tooltip>
+              <Chip 
+                label={`${activeAlerts.length} Active`} 
+                color="error" 
+                size="small" 
+              />
+            </Box>
+          </Box>
+        </Box>
+        
+        <CardContent sx={{ p: 0 }}>
+          {loading ? (
+            <Box display="flex" justifyContent="center" py={4}>
+              <CircularProgress />
+            </Box>
+          ) : activeAlerts.length === 0 ? (
+            <Box textAlign="center" py={8}>
+              <CheckCircle sx={{ fontSize: 80, color: 'grey.300', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                No urgent blood requests right now
+              </Typography>
+              <Typography variant="body2" color="text.secondary" mb={3}>
+                Great job! All current needs are being met. Check back later.
+              </Typography>
+              <Button
+                variant="outlined"
+                startIcon={<Refresh />}
+                onClick={() => dispatch(fetchActiveAlerts())}
+              >
+                Check for Updates
+              </Button>
+            </Box>
           ) : (
-            <Grid container spacing={2}>
-              {activeAlerts.map((alert) => {
+            <Box>
+              {activeAlerts.slice(0, 5).map((alert, index) => {
                 const urgency = getTimeUrgency(alert.requiredBy)
-                const hasResponded = alert.responses.some((r: any) => r.donorId === user?.id)
-                
                 return (
-                  <Grid item xs={12} key={alert._id}>
-                    <Card 
-                      variant="outlined" 
-                      sx={{ 
-                        border: alert.priority === 'critical' ? '2px solid #f44336' : undefined,
-                        backgroundColor: alert.priority === 'critical' ? '#ffebee' : undefined
-                      }}
-                    >
-                      <CardContent>
+                  <Fade in timeout={300 + index * 100} key={alert._id}>
+                    <Box>
+                      <Box sx={{ 
+                        p: 3, 
+                        borderLeft: `4px solid ${
+                          alert.priority === 'critical' ? '#f44336' :
+                          alert.priority === 'high' ? '#ff9800' :
+                          alert.priority === 'medium' ? '#2196f3' : '#4caf50'
+                        }`,
+                        '&:hover': { 
+                          bgcolor: 'grey.50',
+                          transform: 'translateX(4px)',
+                          transition: 'all 0.2s ease'
+                        }
+                      }}>
                         <Box display="flex" justifyContent="space-between" alignItems="start">
                           <Box flex={1}>
                             <Box display="flex" alignItems="center" gap={1} mb={2}>
                               <Chip 
-                                label={alert.bloodGroup} 
+                                label={`🩸 ${alert.bloodGroup}`} 
                                 color="error" 
-                                size="small" 
+                                size="small"
+                                sx={{ fontWeight: 'bold' }}
                               />
                               <Chip 
                                 label={alert.priority.toUpperCase()} 
                                 color={getPriorityColor(alert.priority) as any}
-                                size="small" 
+                                size="small"
                               />
                               <Chip 
-                                label={urgency.text}
+                                label={urgency.text} 
                                 color={urgency.color as any}
-                                size="small" 
+                                size="small"
+                                icon={<AccessTime />}
                               />
                               {alert.isEmergency && (
                                 <Chip 
-                                  label="EMERGENCY" 
+                                  label="🚨 EMERGENCY" 
                                   color="error" 
                                   size="small"
-                                  sx={{ fontWeight: 'bold' }}
+                                  sx={{ animation: 'pulse 2s infinite' }}
                                 />
                               )}
                             </Box>
                             
-                            <Typography variant="h6" gutterBottom>
+                            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                              {alert.hospitalId?.hospitalName || 'Local Hospital'}
+                            </Typography>
+                            
+                            <Typography variant="body1" color="text.secondary" gutterBottom>
                               {alert.patientCondition}
                             </Typography>
                             
-                            <Box display="flex" alignItems="center" gap={2} mb={1}>
-                              <Box display="flex" alignItems="center">
-                                <LocationOn fontSize="small" sx={{ mr: 0.5 }} />
-                                <Typography variant="body2">
-                                  {alert.hospitalId?.hospitalName || 'Hospital'}
+                            <Box display="flex" alignItems="center" gap={3} mb={2}>
+                              <Box display="flex" alignItems="center" gap={0.5}>
+                                <BloodtypeOutlined fontSize="small" color="error" />
+                                <Typography variant="body2" fontWeight="medium">
+                                  {alert.unitsNeeded} units needed
                                 </Typography>
                               </Box>
-                              <Typography variant="body2" color="text.secondary">
-                                {alert.unitsNeeded} units needed
-                              </Typography>
+                              <Box display="flex" alignItems="center" gap={0.5}>
+                                <LocationOn fontSize="small" color="primary" />
+                                <Typography variant="body2">
+                                  Within {alert.searchRadius}km
+                                </Typography>
+                              </Box>
+                              <Box display="flex" alignItems="center" gap={0.5}>
+                                <DirectionsRun fontSize="small" color="action" />
+                                <Typography variant="body2" color="text.secondary">
+                                  ~15 min drive
+                                </Typography>
+                              </Box>
                             </Box>
                             
                             {alert.additionalNotes && (
-                              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                {alert.additionalNotes}
+                              <Typography variant="body2" color="text.secondary" sx={{ 
+                                fontStyle: 'italic',
+                                mt: 1,
+                                p: 1,
+                                bgcolor: 'grey.100',
+                                borderRadius: 1
+                              }}>
+                                💬 {alert.additionalNotes}
                               </Typography>
                             )}
-                            
-                            <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-                              Posted {new Date(alert.createdAt).toLocaleString()}
-                            </Typography>
                           </Box>
                           
-                          <Box ml={2}>
-                            {hasResponded ? (
-                              <Chip 
-                                label="Responded" 
-                                color="success" 
-                                icon={<CheckCircle />}
-                              />
-                            ) : (
-                              <Button
-                                variant="contained"
-                                color="error"
-                                onClick={() => handleRespond(alert)}
-                                startIcon={<Favorite />}
-                              >
-                                Respond
-                              </Button>
-                            )}
+                          <Box display="flex" flexDirection="column" gap={1} ml={2}>
+                            <Button
+                              variant="contained"
+                              color="error"
+                              size="small"
+                              startIcon={<Favorite />}
+                              onClick={() => handleQuickResponse(alert._id, 'accepted')}
+                              disabled={responding}
+                              sx={{ minWidth: 120 }}
+                            >
+                              I Can Help!
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              startIcon={<Cancel />}
+                              onClick={() => handleQuickResponse(alert._id, 'declined')}
+                              disabled={responding}
+                              sx={{ minWidth: 120 }}
+                            >
+                              Can't Help
+                            </Button>
+                            <Button
+                              variant="text"
+                              size="small"
+                              startIcon={<Phone />}
+                              sx={{ minWidth: 120 }}
+                            >
+                              Call Hospital
+                            </Button>
                           </Box>
                         </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
+                      </Box>
+                      {index < activeAlerts.length - 1 && <Divider />}
+                    </Box>
+                  </Fade>
                 )
               })}
-            </Grid>
+            </Box>
           )}
         </CardContent>
       </Card>
 
-      {/* Response Dialog */}
-      <Dialog 
-        open={respondDialogOpen} 
-        onClose={() => setRespondDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Respond to Blood Donation Alert</DialogTitle>
-        <form onSubmit={handleSubmit(onSubmitResponse)}>
-          <DialogContent>
-            {selectedAlert && (
-              <Box mb={2}>
-                <Typography variant="subtitle1" gutterBottom>
-                  {selectedAlert.patientCondition}
+      {/* Map Statistics */}
+      <MapStats userRole="donor" />
+
+      {/* Live Map Section */}
+      <Card sx={{ borderRadius: 3, overflow: 'hidden', mb: 4 }}>
+        <Box sx={{ 
+          background: 'linear-gradient(90deg, #f5f5f5 0%, #e0e0e0 100%)',
+          p: 3,
+          borderBottom: '1px solid #e0e0e0'
+        }}>
+          <Typography variant="h5" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            🗺️ Nearby Opportunities
+            <Chip label="Live Updates" color="primary" size="small" />
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Find hospitals, emergency alerts, and donation camps near you
+          </Typography>
+        </Box>
+        <CardContent sx={{ p: 0 }}>
+          <SimpleMap userRole="donor" height={500} />
+        </CardContent>
+      </Card>
+
+      {/* Donor Health Card */}
+      <DonorHealthCard donorStats={donorStats} />
+
+      {/* Recent Activity & Achievements */}
+      <Grid container spacing={3} mt={2}>
+        <Grid item xs={12} md={6}>
+          <Card sx={{ borderRadius: 3, height: '100%' }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Timeline color="primary" />
+                Recent Activity
+              </Typography>
+              <List>
+                <ListItem>
+                  <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
+                  <ListItemText 
+                    primary="Donated at City General Hospital"
+                    secondary="January 15, 2024 • 450ml • O+ Blood"
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon><EmojiEvents color="warning" /></ListItemIcon>
+                  <ListItemText 
+                    primary="Earned 'Emergency Responder' Badge"
+                    secondary="Responded to 5 emergency alerts"
+                  />
+                </ListItem>
+                <ListItem>
+                  <ListItemIcon><Star color="primary" /></ListItemIcon>
+                  <ListItemText 
+                    primary="Reached Gold Donor Status"
+                    secondary="Completed 10+ successful donations"
+                  />
+                </ListItem>
+              </List>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <Card sx={{ borderRadius: 3, height: '100%' }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CardGiftcard color="secondary" />
+                Rewards & Achievements
+              </Typography>
+              <Box display="flex" flexWrap="wrap" gap={1} mb={3}>
+                {donorStats.badges.map((badge, index) => (
+                  <Chip
+                    key={index}
+                    label={badge}
+                    color="primary"
+                    variant="outlined"
+                    size="small"
+                    icon={<EmojiEvents />}
+                  />
+                ))}
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Progress to next reward (Free Health Checkup)
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {selectedAlert.bloodGroup} • {selectedAlert.unitsNeeded} units needed
+                <LinearProgress 
+                  variant="determinate" 
+                  value={(donorStats.points / 1500) * 100} 
+                  sx={{ mb: 1 }}
+                />
+                <Typography variant="caption" color="text.secondary">
+                  {donorStats.points}/1500 points • {1500 - donorStats.points} points to go
                 </Typography>
               </Box>
-            )}
-            
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Your Response</InputLabel>
-              <Select
-                {...register('status', { required: 'Response is required' })}
-                label="Your Response"
-                error={!!errors.status}
-              >
-                <MenuItem value="accepted">✅ I can donate</MenuItem>
-                <MenuItem value="declined">❌ Cannot donate right now</MenuItem>
-              </Select>
-            </FormControl>
-            
-            <TextField
-              margin="normal"
-              fullWidth
-              label="Estimated Arrival (if accepting)"
-              type="datetime-local"
-              InputLabelProps={{ shrink: true }}
-              {...register('estimatedArrival')}
-            />
-            
-            <TextField
-              margin="normal"
-              fullWidth
-              label="Additional Notes"
-              multiline
-              rows={3}
-              placeholder="Any additional information..."
-              {...register('notes')}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setRespondDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="contained">
-              Submit Response
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
-      {/* Floating Action Button */}
-      <FloatingActionButton
-        userRole="donor"
-        onRefresh={() => dispatch(fetchActiveAlerts())}
-        onNotifications={() => toast.info('Notifications feature coming soon!')}
-      />
+      {/* Map Notifications */}
+      <MapNotifications userRole="donor" />
     </Container>
   )
 }
