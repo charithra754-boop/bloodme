@@ -63,4 +63,12 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   emergencyContact?: string;
+
+  @IsOptional()
+  @IsArray()
+  medicalConditions?: string[];
+
+  @IsOptional()
+  @IsArray()
+  medications?: string[];
 }

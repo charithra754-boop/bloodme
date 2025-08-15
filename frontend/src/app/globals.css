@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom animations for the Blood Donor System */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Blood drop animation */
+@keyframes bloodDrop {
+  0% {
+    transform: translateY(-10px) scale(1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(10px) scale(1.1);
+    opacity: 0;
+  }
+}
+
+/* Glow effect for emergency alerts */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(244, 67, 54, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(244, 67, 54, 0.8), 0 0 30px rgba(244, 67, 54, 0.6);
+  }
+}
+
+/* Utility classes */
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+.animate-slideInUp {
+  animation: slideInUp 0.6s ease-out;
+}
+
+.animate-fadeInScale {
+  animation: fadeInScale 0.5s ease-out;
+}
+
+.animate-bloodDrop {
+  animation: bloodDrop 3s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Hover effects */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Blood theme colors */
+.blood-gradient {
+  background: linear-gradient(135deg, #d32f2f 0%, #f44336 100%);
+}
+
+.success-gradient {
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+}
+
+.warning-gradient {
+  background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+}
+
+.info-gradient {
+  background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d32f2f;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b71c1c;
+}

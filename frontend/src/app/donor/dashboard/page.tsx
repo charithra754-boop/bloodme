@@ -21,7 +21,15 @@ import {
   InputLabel,
   Select,
   Alert,
-  LinearProgress
+  LinearProgress,
+  Avatar,
+  Paper,
+  Fade,
+  Grow,
+  IconButton,
+  Tooltip,
+  Badge,
+  Divider
 } from '@mui/material'
 import { 
   Favorite, 
@@ -30,12 +38,23 @@ import {
   LocationOn,
   Phone,
   CheckCircle,
-  Cancel
+  Cancel,
+  BloodtypeOutlined,
+  Emergency,
+  Schedule,
+  TrendingUp,
+  Star,
+  LocalHospital,
+  Refresh,
+  VolunteerActivism,
+  Timeline,
+  CardGiftcard
 } from '@mui/icons-material'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import { AppDispatch, RootState } from '@/store'
 import { fetchActiveAlerts, respondToAlert } from '@/store/slices/alertsSlice'
+import FloatingActionButton from '@/components/FloatingActionButton'
 
 interface RespondForm {
   status: string
@@ -127,84 +146,210 @@ export default function DonorDashboard() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      {/* Header */}
-      <Box mb={4}>
-        <Typography variant="h4" gutterBottom>
-          Donor Dashboard
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          Welcome back, {user?.name} - Thank you for saving lives! 🩸
-        </Typography>
-      </Box>
+      {/* Enhanced Header */}
+      <Fade in timeout={800}>
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            p: 4, 
+            mb: 4, 
+            background: 'linear-gradient(135deg, #e91e63 0%, #f06292 100%)',
+            color: 'white',
+            borderRadius: 3,
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          <Box 
+            sx={{
+              position: 'absolute',
+              top: -50,
+              right: -50,
+              width: 200,
+              height: 200,
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.1)',
+            }}
+          />
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Box display="flex" alignItems="center" gap={3}>
+              <Avatar 
+                sx={{ 
+                  width: 80, 
+                  height: 80, 
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  fontSize: '2rem'
+                }}
+              >
+                <VolunteerActivism fontSize="large" />
+              </Avatar>
+              <Box>
+                <Typography variant="h3" fontWeight="bold" gutterBottom>
+                  Life Saver Dashboard
+                </Typography>
+                <Typography variant="h6" sx={{ opacity: 0.9 }}>
+                  Welcome back, {user?.name}! 🦸‍♀️
+                </Typography>
+                <Box display="flex" alignItems="center" gap={2} mt={1}>
+                  <Chip 
+                    icon={<CheckCircle />} 
+                    label="Eligible Donor" 
+                    size="small" 
+                    sx={{ bgcolor: 'rgba(76,175,80,0.8)', color: 'white' }}
+                  />
+                  <Chip 
+                    icon={<Star />} 
+                    label={`${donorStats.tier} Member`} 
+                    size="small" 
+                    sx={{ bgcolor: 'rgba(255,193,7,0.8)', color: 'white' }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+            <Box textAlign="center">
+              <Typography variant="h4" fontWeight="bold" gutterBottom>
+                {donorStats.livesImpacted}
+              </Typography>
+              <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                💝 Lives Impacted
+              </Typography>
+              <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                You're a hero! 🌟
+              </Typography>
+            </Box>
+          </Box>
+        </Paper>
+      </Fade>
 
-      {/* Stats Cards */}
+      {/* Enhanced Stats Cards */}
       <Grid container spacing={3} mb={4}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center">
-                <Favorite color="error" sx={{ mr: 2 }} />
-                <Box>
-                  <Typography variant="h4">{donorStats.totalDonations}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Total Donations
+          <Grow in timeout={600}>
+            <Card sx={{ 
+              background: 'linear-gradient(135deg, #e91e63 0%, #f06292 100%)',
+              color: 'white',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" justifyContent="space-between">
+                  <Box>
+                    <Typography variant="h3" fontWeight="bold">
+                      {donorStats.totalDonations}
+                    </Typography>
+                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                      🩸 Blood Donations
+                    </Typography>
+                  </Box>
+                  <Badge badgeContent={donorStats.totalDonations} color="error">
+                    <Favorite sx={{ fontSize: 40, opacity: 0.8 }} />
+                  </Badge>
+                </Box>
+                <Box display="flex" alignItems="center" mt={2}>
+                  <TrendingUp sx={{ mr: 1, fontSize: 16 }} />
+                  <Typography variant="caption">
+                    {donorStats.totalDonations > 0 ? 'Keep up the great work!' : 'Ready to start saving lives?'}
                   </Typography>
                 </Box>
-              </Box>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Grow>
         </Grid>
         
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center">
-                <EmojiEvents color="warning" sx={{ mr: 2 }} />
-                <Box>
-                  <Typography variant="h4">{donorStats.rewardPoints}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Reward Points
-                  </Typography>
+          <Grow in timeout={800}>
+            <Card sx={{ 
+              background: 'linear-gradient(135deg, #ff9800 0%, #ffb74d 100%)',
+              color: 'white'
+            }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" justifyContent="space-between">
+                  <Box>
+                    <Typography variant="h3" fontWeight="bold">
+                      {donorStats.rewardPoints}
+                    </Typography>
+                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                      ⭐ Reward Points
+                    </Typography>
+                  </Box>
+                  <EmojiEvents sx={{ fontSize: 40, opacity: 0.8 }} />
                 </Box>
-              </Box>
-            </CardContent>
-          </Card>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={(donorStats.rewardPoints / donorStats.nextTierPoints) * 100} 
+                  sx={{ 
+                    mt: 2, 
+                    bgcolor: 'rgba(255,255,255,0.3)',
+                    '& .MuiLinearProgress-bar': { bgcolor: 'rgba(255,255,255,0.8)' }
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </Grow>
         </Grid>
         
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center">
-                <CheckCircle color="success" sx={{ mr: 2 }} />
-                <Box>
-                  <Typography variant="h4">{donorStats.livesImpacted}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Lives Impacted
+          <Grow in timeout={1000}>
+            <Card sx={{ 
+              background: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)',
+              color: 'white'
+            }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" justifyContent="space-between">
+                  <Box>
+                    <Typography variant="h3" fontWeight="bold">
+                      {donorStats.livesImpacted}
+                    </Typography>
+                    <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                      💝 Lives Saved
+                    </Typography>
+                  </Box>
+                  <VolunteerActivism sx={{ fontSize: 40, opacity: 0.8 }} />
+                </Box>
+                <Box display="flex" alignItems="center" mt={2}>
+                  <Star sx={{ mr: 1, fontSize: 16 }} />
+                  <Typography variant="caption">
+                    You're making a difference!
                   </Typography>
                 </Box>
-              </Box>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Grow>
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box>
-                <Typography variant="h6" gutterBottom>
-                  {donorStats.tier} Tier
-                </Typography>
+          <Grow in timeout={1200}>
+            <Card sx={{ 
+              background: 'linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%)',
+              color: 'white'
+            }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" justifyContent="space-between">
+                  <Box>
+                    <Typography variant="h6" gutterBottom>
+                      🏆 {donorStats.tier} Tier
+                    </Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                      Next: Gold Level
+                    </Typography>
+                  </Box>
+                  <CardGiftcard sx={{ fontSize: 40, opacity: 0.8 }} />
+                </Box>
                 <LinearProgress 
                   variant="determinate" 
                   value={progressToNextTier} 
-                  sx={{ mb: 1 }}
+                  sx={{ 
+                    mt: 2, 
+                    bgcolor: 'rgba(255,255,255,0.3)',
+                    '& .MuiLinearProgress-bar': { bgcolor: 'rgba(255,255,255,0.8)' }
+                  }}
                 />
-                <Typography variant="body2" color="text.secondary">
-                  {donorStats.nextTierPoints - donorStats.rewardPoints} points to Gold
+                <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                  {donorStats.nextTierPoints - donorStats.rewardPoints} points to go
                 </Typography>
-              </Box>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Grow>
         </Grid>
       </Grid>
 
@@ -383,6 +528,13 @@ export default function DonorDashboard() {
           </DialogActions>
         </form>
       </Dialog>
+
+      {/* Floating Action Button */}
+      <FloatingActionButton
+        userRole="donor"
+        onRefresh={() => dispatch(fetchActiveAlerts())}
+        onNotifications={() => toast.info('Notifications feature coming soon!')}
+      />
     </Container>
   )
 }

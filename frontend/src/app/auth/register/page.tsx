@@ -121,6 +121,8 @@ export default function RegisterPage() {
         }
       }
 
+      console.log('Submitting registration:', registrationData)
+      
       await dispatch(registerUser(registrationData)).unwrap()
       toast.success('Registration successful!')
       
@@ -131,6 +133,7 @@ export default function RegisterPage() {
         router.push('/donor/dashboard')
       }
     } catch (error: any) {
+      console.error('Registration error:', error)
       toast.error(error.message || 'Registration failed')
     }
   }

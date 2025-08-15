@@ -30,21 +30,26 @@ const initialState: AuthState = {
   error: null,
 }
 
-export const login = createAsyncThunk(
+interface LoginResponse {
+  user: User
+  token: string
+}
+
+export const login = createAsyncThunk<LoginResponse, { email: string; password: string }>(
   'auth/login',
-  async (credentials: { email: string; password: string }) => {
-    const response = await authAPI.login(credentials)
-    localStorage.setItem('token', response.token)
-    return response
+  async (credentials) => {
+    const data = await authAPI.login(credentials)
+    localStorage.setItem('token', data.token)
+    return data as LoginResponse
   }
 )
 
-export const register = createAsyncThunk(
+export const register = createAsyncThunk<LoginResponse, any>(
   'auth/register',
-  async (userData: any) => {
-    const response = await authAPI.register(userData)
-    localStorage.setItem('token', response.token)
-    return response
+  async (userData) => {
+    const data = await authAPI.register(userData)
+    localStorage.setItem('token', data.token)
+    return data as LoginResponse
   }
 )
 

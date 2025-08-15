@@ -22,19 +22,28 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
+    console.error('API Error:', error)
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       window.location.href = '/auth/login'
     }
-    return Promise.reject(error.response?.data || error.message)
+    
+    // Better error handling
+    const errorMessage = error.response?.data?.message || 
+                        error.response?.data?.error || 
+                        error.message || 
+                        'Network error occurred'
+    
+    return Promise.reject(new Error(errorMessage))
   }
 )
 
 export const authAPI = {
-  login: (credentials: { email: string; password: string }) =>
+  login: (credentials: { email: string; password: string }): Promise<{ user: any; token: string }> =>
     api.post('/auth/login', credentials),
   
-  register: (userData: any) =>
+  register: (userData: any): Promise<{ user: any; token: string }> =>
     api.post('/auth/register', userData),
   
   getProfile: () =>

@@ -37,9 +37,9 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      const result = await dispatch(login(data)).unwrap()
+      const result = await dispatch(login(data)).unwrap() as { user: { role: string }, token: string }
       toast.success('Login successful!')
-      
+
       // Redirect based on user role
       if (result.user.role === 'hospital') {
         router.push('/hospital/dashboard')
@@ -65,7 +65,7 @@ export default function LoginPage() {
           <Typography component="h1" variant="h4" align="center" gutterBottom>
             Sign In
           </Typography>
-          
+
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
