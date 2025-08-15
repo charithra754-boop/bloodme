@@ -43,16 +43,16 @@ interface RegisterForm {
   phone: string
   role: 'donor' | 'hospital'
   address: string
-  
+
   // Location (simplified - in production, use Google Maps API)
   latitude: number
   longitude: number
-  
+
   // Donor specific
   bloodGroup?: string
   dateOfBirth?: string
   weight?: number
-  
+
   // Hospital specific
   hospitalName?: string
   licenseNumber?: string
@@ -64,7 +64,7 @@ export default function RegisterPage() {
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
   const { loading, error } = useSelector((state: RootState) => state.auth)
-  
+
   const [activeStep, setActiveStep] = useState(0)
   const [userRole, setUserRole] = useState<'donor' | 'hospital'>('donor')
   const [locationStatus, setLocationStatus] = useState<'idle' | 'detecting' | 'success' | 'error'>('idle')
@@ -122,10 +122,10 @@ export default function RegisterPage() {
       }
 
       console.log('Submitting registration:', registrationData)
-      
+
       await dispatch(registerUser(registrationData)).unwrap()
       toast.success('Registration successful!')
-      
+
       // Redirect based on user role
       if (userRole === 'hospital') {
         router.push('/hospital/dashboard')
@@ -146,26 +146,26 @@ export default function RegisterPage() {
     }
 
     setLocationStatus('detecting')
-    
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords
-        
+
         // Set the form values
         setValue('latitude', latitude)
         setValue('longitude', longitude)
-        
+
         setLocationStatus('success')
         toast.success('Location detected successfully!')
-        
+
         // Optional: Reverse geocode to get address
         reverseGeocode(latitude, longitude)
       },
       (error) => {
         setLocationStatus('error')
         let errorMessage = 'Could not get your location. '
-        
-        switch(error.code) {
+
+        switch (error.code) {
           case error.PERMISSION_DENIED:
             errorMessage += 'Please allow location access.'
             break
@@ -179,7 +179,7 @@ export default function RegisterPage() {
             errorMessage += 'An unknown error occurred.'
             break
         }
-        
+
         toast.error(errorMessage)
       },
       {
@@ -197,7 +197,7 @@ export default function RegisterPage() {
         `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
       )
       const data = await response.json()
-      
+
       if (data.locality && data.countryName) {
         const address = `${data.locality}, ${data.principalSubdivision}, ${data.countryName}`
         setValue('address', address)
@@ -213,7 +213,7 @@ export default function RegisterPage() {
   const handleNext = async () => {
     const fieldsToValidate = getFieldsForStep(activeStep)
     const isValid = await trigger(fieldsToValidate)
-    
+
     if (isValid) {
       setActiveStep((prev) => {
         const nextStep = prev + 1
@@ -237,15 +237,15 @@ export default function RegisterPage() {
                 value={userRole}
                 onChange={(e) => setUserRole(e.target.value as 'donor' | 'hospital')}
               >
-                <FormControlLabel 
-                  value="donor" 
-                  control={<Radio />} 
-                  label="Blood Donor - I want to donate blood and help save lives" 
+                <FormControlLabel
+                  value="donor"
+                  control={<Radio />}
+                  label="Blood Donor - I want to donate blood and help save lives"
                 />
-                <FormControlLabel 
-                  value="hospital" 
-                  control={<Radio />} 
-                  label="Hospital/Medical Facility - I need to request blood donations" 
+                <FormControlLabel
+                  value="hospital"
+                  control={<Radio />}
+                  label="Hospital/Medical Facility - I need to request blood donations"
                 />
               </RadioGroup>
             </FormControl>
@@ -338,7 +338,7 @@ export default function RegisterPage() {
             {/* Hidden location fields */}
             <input type="hidden" {...register('latitude', { required: true, valueAsNumber: true })} />
             <input type="hidden" {...register('longitude', { required: true, valueAsNumber: true })} />
-            
+
             <Grid item xs={12}>
               <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
                 <Typography variant="subtitle2" gutterBottom>
@@ -360,9 +360,9 @@ export default function RegisterPage() {
                     ❌ Could not detect location. Please enable location access.
                   </Typography>
                 )}
-                <Button 
-                  onClick={getCurrentLocation} 
-                  variant="outlined" 
+                <Button
+                  onClick={getCurrentLocation}
+                  variant="outlined"
                   size="small"
                   sx={{ mt: 1 }}
                   disabled={locationStatus === 'detecting'}
@@ -407,7 +407,7 @@ export default function RegisterPage() {
                     fullWidth
                     label="Weight (kg)"
                     type="number"
-                    {...register('weight', { 
+                    {...register('weight', {
                       required: 'Weight is required',
                       min: { value: 45, message: 'Minimum weight is 45kg' },
                       valueAsNumber: true
@@ -500,7 +500,7 @@ export default function RegisterPage() {
               >
                 Back
               </Button>
-              
+
               {activeStep === steps.length - 1 ? (
                 <Button
                   type="submit"
