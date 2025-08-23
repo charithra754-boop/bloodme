@@ -40,12 +40,18 @@ export default function LoginPage() {
       const result = await dispatch(login(data)).unwrap() as { user: { role: string }, token: string }
       toast.success('Login successful!')
 
-      // Redirect based on user role
-      if (result.user.role === 'hospital') {
-        router.push('/hospital/dashboard')
-      } else if (result.user.role === 'donor') {
-        router.push('/donor/dashboard')
-      }
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        // Redirect based on user role
+        if (result.user.role === 'hospital') {
+          router.push('/hospital/dashboard')
+        } else if (result.user.role === 'donor') {
+          router.push('/donor/dashboard')
+        } else {
+          // Fallback to home page
+          router.push('/')
+        }
+      }, 100)
     } catch (error: any) {
       toast.error(error.message || 'Login failed')
     }

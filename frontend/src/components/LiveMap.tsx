@@ -57,7 +57,7 @@ const DynamicMap = dynamic(() => import('./MapComponent'), {
         borderRadius: 2
       }}
     >
-      <Typography>Loading map...</Typography>
+      <Typography>Loading interactive map...</Typography>
     </Box>
   )
 })

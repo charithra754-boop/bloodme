@@ -1,5 +1,5 @@
 import { IsEmail, IsString, IsEnum, IsOptional, IsNumber, IsDateString, IsArray, ValidateNested, IsPhoneNumber } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { UserRole, BloodGroup } from '../../schemas/user.schema';
 
 class LocationDto {
@@ -21,6 +21,11 @@ export class RegisterDto {
   @IsString()
   password: string;
 
+  // Frontend sends confirmPassword but we don't need to validate it in backend
+  @IsOptional()
+  @IsString()
+  confirmPassword?: string;
+
   @IsString()
   phone: string;
 
@@ -30,9 +35,20 @@ export class RegisterDto {
   @IsString()
   address: string;
 
+  // Handle both location object and separate lat/lng
+  @IsOptional()
   @ValidateNested()
   @Type(() => LocationDto)
-  location: LocationDto;
+  location?: LocationDto;
+
+  // Frontend sends separate latitude/longitude
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
 
   // Donor-specific fields
   @IsOptional()

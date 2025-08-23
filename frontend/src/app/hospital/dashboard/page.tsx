@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   Container,
@@ -29,7 +30,8 @@ import {
   IconButton,
   Tooltip,
   Badge,
-  Divider
+  Divider,
+  CircularProgress
 } from '@mui/material'
 import { 
   Add, 
@@ -44,7 +46,8 @@ import {
   Analytics,
   BloodtypeOutlined,
   LocationOn,
-  Phone
+  Phone,
+  Edit
 } from '@mui/icons-material'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
@@ -54,6 +57,7 @@ import FloatingActionButton from '@/components/FloatingActionButton'
 import SimpleMap from '@/components/SimpleMap'
 import MapStats from '@/components/MapStats'
 import MapNotifications from '@/components/MapNotifications'
+import ProfileEditor from '@/components/ProfileEditor'
 // import LiveNotifications from '@/components/LiveNotifications'
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
@@ -78,9 +82,32 @@ interface CreateAlertForm {
 export default function HospitalDashboard() {
   const dispatch = useDispatch<AppDispatch>()
   const { hospitalAlerts, loading } = useSelector((state: RootState) => state.alerts)
-  const { user } = useSelector((state: RootState) => state.auth)
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth)
+  const router = useRouter()
   
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [profileEditorOpen, setProfileEditorOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (mounted && !isAuthenticated) {
+      router.push('/auth/login')
+    }
+  }, [mounted, isAuthenticated, router])
+
+  // Don't render if not authenticated
+  if (!isAuthenticated || !user) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Container>
+    )
+  }
   
   const {
     register,
@@ -173,6 +200,19 @@ export default function HospitalDashboard() {
                     size="small" 
                     sx={{ bgcolor: 'rgba(76,175,80,0.8)', color: 'white' }}
                   />
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<Edit />}
+                    onClick={() => setProfileEditorOpen(true)}
+                    sx={{ 
+                      color: 'white', 
+                      borderColor: 'rgba(255,255,255,0.5)',
+                      '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' }
+                    }}
+                  >
+                    Edit Profile
+                  </Button>
                 </Box>
               </Box>
             </Box>
@@ -753,6 +793,12 @@ export default function HospitalDashboard() {
       
       {/* Map Notifications */}
       <MapNotifications userRole="hospital" />
+
+      {/* Profile Editor Dialog */}
+      <ProfileEditor 
+        open={profileEditorOpen} 
+        onClose={() => setProfileEditorOpen(false)} 
+      />
     </Container>
   )
 }

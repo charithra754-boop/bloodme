@@ -22,10 +22,10 @@ export class AuthService {
     console.log('Registration attempt:', { 
       email: registerDto.email, 
       role: registerDto.role,
-      hasLocation: !!registerDto.location 
+      hasLocation: !!(registerDto.location || (registerDto.latitude && registerDto.longitude))
     });
     
-    const { email, password, role, ...userData } = registerDto;
+    const { email, password, role, confirmPassword, latitude, longitude, ...userData } = registerDto;
 
     // Check if user already exists
     const existingUser = await this.userModel.findOne({ email });
@@ -36,12 +36,22 @@ export class AuthService {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    // Create location object from separate lat/lng if needed
+    let location = registerDto.location;
+    if (!location && latitude && longitude) {
+      location = {
+        type: 'Point',
+        coordinates: [longitude, latitude] // MongoDB expects [lng, lat]
+      };
+    }
+
     // Create user
     const user = new this.userModel({
       ...userData,
       email,
       password: hashedPassword,
       role,
+      location,
     });
 
     const savedUser = await user.save();

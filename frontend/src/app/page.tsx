@@ -26,14 +26,33 @@ export default function HomePage() {
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth)
 
   useEffect(() => {
-    if (isAuthenticated && user) {
-      if (user.role === 'hospital') {
-        router.push('/hospital/dashboard')
-      } else if (user.role === 'donor') {
-        router.push('/donor/dashboard')
-      }
+    // Only redirect if we have both authentication state and user data
+    if (isAuthenticated && user && user.role) {
+      // Add a small delay to prevent redirect loops
+      const timer = setTimeout(() => {
+        if (user.role === 'hospital') {
+          router.push('/hospital/dashboard')
+        } else if (user.role === 'donor') {
+          router.push('/donor/dashboard')
+        }
+      }, 100)
+      
+      return () => clearTimeout(timer)
     }
   }, [isAuthenticated, user, router])
+
+  // Don't render the home page if user is authenticated and being redirected
+  if (isAuthenticated && user && user.role) {
+    return (
+      <Container maxWidth="lg">
+        <Box sx={{ py: 8, textAlign: 'center' }}>
+          <Typography variant="h5" gutterBottom>
+            Redirecting to your dashboard...
+          </Typography>
+        </Box>
+      </Container>
+    )
+  }
 
   const features = [
     {

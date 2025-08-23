@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   Container,
@@ -44,7 +45,8 @@ import {
   DirectionsRun,
   Phone,
   Navigation,
-  Cancel
+  Cancel,
+  Edit
 } from '@mui/icons-material'
 import { toast } from 'react-toastify'
 import { AppDispatch, RootState } from '@/store'
@@ -53,25 +55,44 @@ import DonorHealthCard from '@/components/DonorHealthCard'
 import SimpleMap from '@/components/SimpleMap'
 import MapStats from '@/components/MapStats'
 import MapNotifications from '@/components/MapNotifications'
+import ProfileEditor from '@/components/ProfileEditor'
 
 export default function DonorDashboard() {
   const dispatch = useDispatch<AppDispatch>()
   const { activeAlerts, loading } = useSelector((state: RootState) => state.alerts)
-  const { user } = useSelector((state: RootState) => state.auth)
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth)
+  const router = useRouter()
 
   const [responding, setResponding] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [profileEditorOpen, setProfileEditorOpen] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Mock donor stats for demo
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (mounted && !isAuthenticated) {
+      router.push('/auth/login')
+    }
+  }, [mounted, isAuthenticated, router])
+
+  // Don't render if not authenticated
+  if (!isAuthenticated || !user) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Container>
+    )
+  }
+
+  // Dynamic donor stats based on user data
   const donorStats = {
     totalDonations: 12,
     lastDonationDate: new Date('2024-01-15'),
     nextEligibleDate: new Date('2024-04-15'),
-    bloodGroup: (user as any)?.bloodGroup || 'O+',
+    bloodGroup: user?.bloodGroup || 'O+', // Use actual user blood group
     points: 1250,
     rewardPoints: 23,
     level: 'Gold Donor',
@@ -170,10 +191,10 @@ export default function DonorDashboard() {
               </Avatar>
               <Box>
                 <Typography variant="h3" fontWeight="bold" gutterBottom>
-                  Welcome Back, Hero! 🩸
+                  Welcome Back, {user?.name?.split(' ')[0] || 'Hero'}! 🩸
                 </Typography>
                 <Typography variant="h6" sx={{ opacity: 0.9 }}>
-                  {user?.name} • {donorStats.bloodGroup} Donor
+                  {user?.name || 'Anonymous Donor'} • {user?.bloodGroup || donorStats.bloodGroup} Donor
                 </Typography>
                 <Box display="flex" alignItems="center" gap={2} mt={1}>
                   <Chip 
@@ -188,6 +209,19 @@ export default function DonorDashboard() {
                     size="small" 
                     sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
                   />
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<Edit />}
+                    onClick={() => setProfileEditorOpen(true)}
+                    sx={{ 
+                      color: 'white', 
+                      borderColor: 'rgba(255,255,255,0.5)',
+                      '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' }
+                    }}
+                  >
+                    Edit Profile
+                  </Button>
                 </Box>
               </Box>
             </Box>
@@ -556,8 +590,8 @@ export default function DonorDashboard() {
                 <ListItem>
                   <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
                   <ListItemText 
-                    primary="Donated at City General Hospital"
-                    secondary="January 15, 2024 • 450ml • O+ Blood"
+                    primary="Donated at Local Hospital"
+                    secondary={`January 15, 2024 • 450ml • ${user?.bloodGroup || 'O+'} Blood`}
                   />
                 </ListItem>
                 <ListItem>
@@ -618,6 +652,12 @@ export default function DonorDashboard() {
 
       {/* Map Notifications */}
       <MapNotifications userRole="donor" />
+
+      {/* Profile Editor Dialog */}
+      <ProfileEditor 
+        open={profileEditorOpen} 
+        onClose={() => setProfileEditorOpen(false)} 
+      />
     </Container>
   )
 }

@@ -151,19 +151,15 @@ export default function MapNotifications({ userRole }: MapNotificationsProps) {
         switch (action) {
             case 'navigate':
                 // Open navigation
-                console.log('Navigate to location')
                 break
             case 'call':
                 // Make phone call
-                console.log('Call hospital/donor')
                 break
             case 'respond':
                 // Respond to alert
-                console.log('Respond to alert')
                 break
             case 'register':
                 // Register for camp
-                console.log('Register for camp')
                 break
         }
         handleClose()

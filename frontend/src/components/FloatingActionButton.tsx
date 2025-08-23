@@ -26,11 +26,11 @@ interface FloatingActionButtonProps {
   onNotifications?: () => void
 }
 
-export default function FloatingActionButton({ 
-  userRole, 
-  onCreateAlert, 
+export default function FloatingActionButton({
+  userRole,
+  onCreateAlert,
   onRefresh,
-  onNotifications 
+  onNotifications
 }: FloatingActionButtonProps) {
   const [open, setOpen] = useState(false)
 
@@ -50,7 +50,7 @@ export default function FloatingActionButton({
     {
       icon: <Analytics />,
       name: 'Analytics',
-      onClick: () => console.log('Analytics'),
+      onClick: () => { },
       color: '#9c27b0'
     },
     {
@@ -77,13 +77,13 @@ export default function FloatingActionButton({
     {
       icon: <Settings />,
       name: 'Settings',
-      onClick: () => console.log('Settings'),
+      onClick: () => { },
       color: '#607d8b'
     },
     {
       icon: <Help />,
       name: 'Help',
-      onClick: () => console.log('Help'),
+      onClick: () => { },
       color: '#795548'
     }
   ]
@@ -93,9 +93,9 @@ export default function FloatingActionButton({
   return (
     <SpeedDial
       ariaLabel="Quick Actions"
-      sx={{ 
-        position: 'fixed', 
-        bottom: 24, 
+      sx={{
+        position: 'fixed',
+        bottom: 24,
         right: 24,
         '& .MuiFab-primary': {
           background: 'linear-gradient(135deg, #d32f2f 0%, #f44336 100%)',

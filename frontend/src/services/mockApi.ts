@@ -5,18 +5,33 @@ export const mockAuthAPI = {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000))
     
+    const isHospital = credentials.email.includes('hospital')
+    const isDonor = !isHospital
+    
     return {
       user: {
         id: 'demo-user-123',
-        name: credentials.email.includes('hospital') ? 'City General Hospital' : 'John Donor',
+        name: isHospital ? 'City General Hospital' : 'John Donor',
         email: credentials.email,
-        role: credentials.email.includes('hospital') ? 'hospital' : 'donor',
+        role: isHospital ? 'hospital' : 'donor',
         phone: '+1-555-0123',
         address: '123 Demo Street, Demo City',
         location: {
           type: 'Point',
           coordinates: [-74.0060, 40.7128]
-        }
+        },
+        // Add role-specific demo data
+        ...(isDonor && {
+          bloodGroup: 'O+',
+          dateOfBirth: '1990-01-01',
+          weight: 70
+        }),
+        ...(isHospital && {
+          hospitalName: 'City General Hospital',
+          licenseNumber: 'LIC-12345',
+          contactPerson: 'Dr. Smith',
+          emergencyContact: '+1-555-EMERGENCY'
+        })
       },
       token: 'demo-jwt-token-' + Date.now()
     }
@@ -34,7 +49,19 @@ export const mockAuthAPI = {
         role: userData.role,
         phone: userData.phone,
         address: userData.address,
-        location: userData.location
+        location: userData.location,
+        // Include role-specific data
+        ...(userData.role === 'donor' && {
+          bloodGroup: userData.bloodGroup,
+          dateOfBirth: userData.dateOfBirth,
+          weight: userData.weight
+        }),
+        ...(userData.role === 'hospital' && {
+          hospitalName: userData.hospitalName,
+          licenseNumber: userData.licenseNumber,
+          contactPerson: userData.contactPerson,
+          emergencyContact: userData.emergencyContact
+        })
       },
       token: 'demo-jwt-token-' + Date.now()
     }

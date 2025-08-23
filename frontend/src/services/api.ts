@@ -22,7 +22,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    console.error('API Error:', error)
+    // API Error handling
     
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
@@ -31,7 +31,7 @@ api.interceptors.response.use(
     
     // 🚨 HACKATHON DEMO: Check if backend is down
     if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
-      console.warn('🚨 Backend appears to be down, using mock data for demo')
+      // Backend appears to be down, using mock data for demo
       // Don't reject - let the API functions handle fallback
       return Promise.reject({ useMockData: true, originalError: error })
     }
@@ -54,7 +54,7 @@ export const authAPI = {
       return await api.post('/auth/login', credentials)
     } catch (error: any) {
       if (error.useMockData) {
-        console.warn('🚨 Using mock login for demo')
+        // Using mock login for demo
         return await mockAuthAPI.login(credentials)
       }
       throw error
@@ -66,7 +66,7 @@ export const authAPI = {
       return await api.post('/auth/register', userData)
     } catch (error: any) {
       if (error.useMockData) {
-        console.warn('🚨 Using mock registration for demo')
+        // Using mock registration for demo
         return await mockAuthAPI.register(userData)
       }
       throw error
@@ -83,7 +83,7 @@ export const alertsAPI = {
       return await api.get('/alerts/active')
     } catch (error: any) {
       if (error.useMockData) {
-        console.warn('🚨 Using mock alerts for demo')
+        // Using mock alerts for demo
         return await mockAlertsAPI.getActiveAlerts()
       }
       throw error
@@ -95,7 +95,7 @@ export const alertsAPI = {
       return await api.get(`/alerts/hospital${status ? `?status=${status}` : ''}`)
     } catch (error: any) {
       if (error.useMockData) {
-        console.warn('🚨 Using mock hospital alerts for demo')
+        // Using mock hospital alerts for demo
         return []
       }
       throw error
@@ -107,7 +107,7 @@ export const alertsAPI = {
       return await api.post('/alerts', alertData)
     } catch (error: any) {
       if (error.useMockData) {
-        console.warn('🚨 Using mock alert creation for demo')
+        // Using mock alert creation for demo
         return await mockAlertsAPI.createAlert(alertData)
       }
       throw error
@@ -119,7 +119,7 @@ export const alertsAPI = {
       return await api.post(`/alerts/${alertId}/respond`, response)
     } catch (error: any) {
       if (error.useMockData) {
-        console.warn('🚨 Using mock alert response for demo')
+        // Using mock alert response for demo
         return await mockAlertsAPI.respondToAlert(alertId, response)
       }
       throw error

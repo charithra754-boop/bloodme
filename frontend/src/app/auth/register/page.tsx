@@ -121,19 +121,22 @@ export default function RegisterPage() {
         }
       }
 
-      console.log('Submitting registration:', registrationData)
+      // Submitting registration data
 
       await dispatch(registerUser(registrationData)).unwrap()
       toast.success('Registration successful!')
 
-      // Redirect based on user role
-      if (userRole === 'hospital') {
-        router.push('/hospital/dashboard')
-      } else {
-        router.push('/donor/dashboard')
-      }
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        // Redirect based on user role
+        if (userRole === 'hospital') {
+          router.push('/hospital/dashboard')
+        } else {
+          router.push('/donor/dashboard')
+        }
+      }, 100)
     } catch (error: any) {
-      console.error('Registration error:', error)
+      // Registration error handled
       toast.error(error.message || 'Registration failed')
     }
   }
@@ -204,7 +207,7 @@ export default function RegisterPage() {
         toast.info('Address auto-filled based on your location!')
       }
     } catch (error) {
-      console.log('Reverse geocoding failed:', error)
+      // Reverse geocoding failed - optional feature
       // Don't show error to user, it's optional
     }
   }

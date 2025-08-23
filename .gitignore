@@ -128,3 +128,4 @@ Thumbs.db
 # Backup files
 *.backup
 *.bak
+.vercel
